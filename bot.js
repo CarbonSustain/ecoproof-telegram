@@ -7,24 +7,48 @@ const fs = require("fs");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DATA_FILE = "data.json";
 
+// Hardcoded location ETH Denver
+const TARGET_LOCATION = {
+    latitude: 39.782759,
+    longitude: -104.969148,
+    radiusMeters: 100 // Define the range in meters (adjust as needed)
+};
+
+// Function to calculate the distance between two coordinates (Haversine Formula)
+function getDistance(lat1, lon1, lat2, lon2) {
+    const toRadians = (degrees) => degrees * (Math.PI / 180);
+    const R = 6371000; // Earth's radius in meters
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in meters
+}
+
+
 // Function to read stored data from data.json
 const readData = () => {
-  if (!fs.existsSync(DATA_FILE)) return [];
-  const rawData = fs.readFileSync(DATA_FILE);
-  return JSON.parse(rawData);
+    if (!fs.existsSync(DATA_FILE)) return [];
+    const rawData = fs.readFileSync(DATA_FILE);
+    return JSON.parse(rawData);
 };
 
 // Function to save data to data.json
 const saveData = (data) => {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 };
+
+const userStates = {}; // Store user actions before location sharing
 
 // Welcome message upon /start command prompts users to share location
 bot.start((ctx) => {
-  ctx.reply(
-    "Welcome! Please share your location to start.",
-    Markup.keyboard([Markup.button.locationRequest("📍 Share Location")]).resize()
-  );
+    ctx.reply(
+        "Welcome! Start by sharing location.",
+        Markup.keyboard([Markup.button.locationRequest("📍 Share Location")]).resize()
+    );
 });
 
 // Handle User Location
@@ -50,6 +74,8 @@ bot.on("location", async (ctx) => {
     
         // Get local time
         const localTime = moment().utcOffset(weatherData.timezone / 60).format("YYYY-MM-DD HH:mm:ss");
+        const unixTime = moment().unix(); // Unix timestamp for comparison
+
 
         // Read existing data and update JSON file
         const storedData = readData();
@@ -59,7 +85,7 @@ bot.on("location", async (ctx) => {
         
         if (!userEntry) { // ✅ Only create new entry if user is completely new
             userEntry = {
-                userId: user.id,
+                userId: userId,
                 firstName: user.first_name,
                 lastName: user.last_name || "",
                 username: user.username || "",
@@ -72,27 +98,30 @@ bot.on("location", async (ctx) => {
         } else {
             userEntry.shareCount = (userEntry.shareCount || 0) + 1; // Ensure it always exists
             }
+        
+        const timestamp = Date.now(); // Current timestamp
 
         // Add the new location data to the user's history
-        userEntry.locations.push({
+        const newLocation = {
             latitude,
             longitude,
             city,
             temperature,
             weather,
-            time: localTime
-        });
+            time: localTime,
+            unixTime,
+            photoUrl: null
+        };
+
+        userEntry.locations.push(newLocation);
 
         // Save the updated data
         saveData(storedData);
-
         console.log("💾 Data saved:", userEntry);
 
-    // Respond to user
-        ctx.reply(
-            `✅ Data Saved!\n📍 Location: ${city}\n🌡 Temperature: ${temperature}°F\n🌤 Weather: ${weather}\n🕰 Time: ${localTime}`
-        );
-
+        ctx.reply(`✅ Data Saved!\n📍 Location: ${city}\n🌡 Temperature: ${temperature}°F\n🌤 Weather: ${weather}\n🕰 Time: ${localTime}\n\nPlease send a photo to add to your submission!`);
+    
+        
         console.log("✅ Response sent to user!");
     
     } catch (error) {
@@ -101,6 +130,52 @@ bot.on("location", async (ctx) => {
         ctx.reply("⚠️ Failed to fetch weather data. Please try again later.");
     }
 });
+
+bot.on("photo", async (ctx) => {
+    try {
+        const user = ctx.message.from;
+        const userId = ctx.message.from.id;
+
+        // Get the largest available photo file
+        const photoArray = ctx.message.photo;
+        const largestPhoto = photoArray[photoArray.length - 1]; // Highest resolution
+        const fileId = largestPhoto.file_id;
+
+        console.log(`📷 Received photo from user ${user.first_name}, File ID: ${fileId}`);
+
+        // Read existing data
+        const storedData = readData();
+        let userEntry = storedData.find(entry => entry.userId === userId);
+
+        if (!userEntry || userEntry.locations.length === 0) {
+            return ctx.reply("⚠️ Please **share your location first** before sending a photo!");
+        }
+
+        let lastLocation = userEntry.locations[userEntry.locations.length - 1];
+        const currentUnixTime = moment().unix(); // Get current Unix timestamp
+
+        const timeDifference = currentUnixTime - lastLocation.unixTime; // Difference in seconds
+        console.log(`🔍 Time since location: ${timeDifference} seconds`);
+
+        if (timeDifference > 60) {
+            return ctx.reply("⏳ Too much time has passed! Please share your location again before sending a photo.");
+        }
+
+
+        // Attach photo to the most recent location entry
+        userEntry.locations[userEntry.locations.length - 1].photoUrl = fileId;
+
+        // Save updated data
+        saveData(storedData);
+
+        ctx.reply("📷 Photo saved with your last shared location!");
+
+    } catch (error) {
+        console.error("❌ ERROR:", error);
+        ctx.reply("⚠️ Failed to save photo. Please try again.");
+    }
+});
+
 
 // Launch the bot
 bot.launch();
