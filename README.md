@@ -13,19 +13,13 @@ Before running the bot, ensure you have the following installed:
 
 To run the backend for the bot, follow these steps:
 
-### 1️⃣ Clone the Repository
-```sh
- git clone https://github.com/CarbonSustain/ecoproof-rvu.git
- cd ecoproof-rvu
-```
-
-### 2️⃣ Install Dependencies
+### 1 Install Dependencies
 Run the following command in the project directory:
 ```sh
  npm install
 ```
 
-### 3️⃣ Setup Configuration Files
+### 2 Setup Configuration Files
 
 #### **Create `data.json`**
 Create a `data.json` file inside the project directory and initialize it with an empty array:
@@ -108,4 +102,4 @@ Once everything is running:
 - If ngrok generates a new URL on restart, update your bot’s configuration with the new link.
 - Check the console logs for any errors.
 
-🚀 Now you’re all set to run the EcoProof RVU Telegram bot!
+🚀 Now you’re all set to run the EcoProof Telegram bot!
