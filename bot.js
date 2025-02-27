@@ -46,8 +46,11 @@ const userStates = {}; // Store user actions before location sharing
 // Welcome message upon /start command prompts users to share location
 bot.start((ctx) => {
     ctx.reply(
-        "Welcome! Start by sharing location.",
-        Markup.keyboard([Markup.button.locationRequest("📍 Share Location")]).resize()
+        "Welcome! Choose an option:",
+        Markup.keyboard([
+            [Markup.button.locationRequest("📍 Share Location")], // Share location button
+            [Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL)] // Mini App button
+        ]).resize()
     );
 });
 
@@ -71,7 +74,7 @@ bot.on("location", async (ctx) => {
         const city = weatherData.name;
         const temperature = weatherData.main.temp;
         const weather = weatherData.weather[0].description;
-    
+
         // Get local time
         const localTime = moment().utcOffset(weatherData.timezone / 60).format("YYYY-MM-DD HH:mm:ss");
         const unixTime = moment().unix(); // Unix timestamp for comparison
@@ -80,9 +83,22 @@ bot.on("location", async (ctx) => {
         // Read existing data and update JSON file
         const storedData = readData();
 
+        // Calculate points based on distance from target location
+        const distance = getDistance(latitude, longitude, TARGET_LOCATION.latitude, TARGET_LOCATION.longitude);
+        let points = 0;
+
+        if (distance <= TARGET_LOCATION.radiusMeters) {
+            // Prevent awarding points if the last location was already inside the radius
+            const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
+
+            if (!lastLocation || getDistance(lastLocation.latitude, lastLocation.longitude, latitude, longitude) > 5) {
+                points += 1;
+            }
+        }
+
         // Check if the user already exists in data.json
         let userEntry = storedData.find(entry => entry.userId === user.id);
-        
+
         if (!userEntry) { // ✅ Only create new entry if user is completely new
             userEntry = {
                 userId: userId,
@@ -92,13 +108,19 @@ bot.on("location", async (ctx) => {
                 language: user.language_code,
                 profilePhoto: user.photo_url || "",
                 shareCount: 1, // First time sharing location
+                pointsCount: points, // Add points if location is within the range
                 locations: []
             };
             storedData.push(userEntry);
         } else {
             userEntry.shareCount = (userEntry.shareCount || 0) + 1; // Ensure it always exists
-            }
-        
+            userEntry.pointsCount = (userEntry.pointsCount || 0) + points; // Add points if location is within the range
+        }
+
+        // Log the points data
+        console.log(`📍 Distance from target location: ${distance} meters`);
+        console.log("📊 Points awarded to user for this entry: ", points);
+
         const timestamp = Date.now(); // Current timestamp
 
         // Add the new location data to the user's history
@@ -110,7 +132,8 @@ bot.on("location", async (ctx) => {
             weather,
             time: localTime,
             unixTime,
-            photoUrl: null
+            photoUrl: null,
+            pointsEarned: points
         };
 
         userEntry.locations.push(newLocation);
@@ -120,10 +143,10 @@ bot.on("location", async (ctx) => {
         console.log("💾 Data saved:", userEntry);
 
         ctx.reply(`✅ Data Saved!\n📍 Location: ${city}\n🌡 Temperature: ${temperature}°F\n🌤 Weather: ${weather}\n🕰 Time: ${localTime}\n\nPlease send a photo to add to your submission!`);
-    
-        
+
+
         console.log("✅ Response sent to user!");
-    
+
     } catch (error) {
         console.error(error);
         console.error("❌ ERROR:", error);

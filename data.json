@@ -1,0 +1,59 @@
+[
+  {
+    "userId": 6578721349,
+    "firstName": "Paul",
+    "lastName": "Bryzek",
+    "username": "HaasBlockchain",
+    "language": "en",
+    "profilePhoto": "",
+    "shareCount": 1,
+    "pointsCount": 0,
+    "locations": [
+      {
+        "latitude": 39.758171,
+        "longitude": -104.981762,
+        "city": "Denver",
+        "temperature": 63.55,
+        "weather": "few clouds",
+        "time": "2025-02-25 10:20:08",
+        "unixTime": 1740504008,
+        "photoUrl": "AgACAgEAAxkBAAPBZ738CWwBFFtrzqKm1auQvc_DFJ0AAsStMRvqtfBFjZErCBhwaH8BAAMCAAN5AAM2BA",
+        "pointsEarned": 0
+      }
+    ]
+  },
+  {
+    "userId": 7888221463,
+    "firstName": "Kirthan",
+    "lastName": "",
+    "username": "",
+    "language": "en",
+    "profilePhoto": "",
+    "shareCount": 2,
+    "pointsCount": 0,
+    "locations": [
+      {
+        "latitude": 12.922855,
+        "longitude": 77.501855,
+        "city": "Kanija Bhavan",
+        "temperature": 77.25,
+        "weather": "haze",
+        "time": "2025-02-27 09:44:18",
+        "unixTime": 1740629658,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 13.027181,
+        "longitude": 77.611901,
+        "city": "Bengaluru",
+        "temperature": 72.86,
+        "weather": "few clouds",
+        "time": "2025-02-27 22:15:31",
+        "unixTime": 1740674731,
+        "photoUrl": null,
+        "pointsEarned": 0
+      }
+    ]
+  }
+]

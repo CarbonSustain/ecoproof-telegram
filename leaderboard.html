@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .leaderboard {
+            max-width: 500px;
+            margin: auto;
+            background: #1E1E1E;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .user {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .user:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🏆 Leaderboard</h2>
+    <div id="leaderboard" class="leaderboard">Loading...</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch("/leaderboard-data")  // Fetch data from the bot's server
+                .then(response => response.json())
+                .then(data => {
+                    let leaderboardHTML = "";
+                    data.forEach(user => {
+                        leaderboardHTML += `
+                            <div class="user">
+                                <span>${user.firstName} (${user.username || "N/A"})</span>
+                                <span>🏅 ${user.pointsCount} pts</span>
+                            </div>
+                        `;
+                    });
+                    document.getElementById("leaderboard").innerHTML = leaderboardHTML;
+                })
+                .catch(error => console.error("Error loading leaderboard:", error));
+        });
+    </script>
+</body>
+
+</html>
