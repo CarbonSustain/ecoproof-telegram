@@ -21,12 +21,6 @@ Run the following command in the project directory:
 
 ### 2 Setup Configuration Files
 
-#### **Create `data.json`**
-Create a `data.json` file inside the project directory and initialize it with an empty array:
-```json
-[]
-```
-
 #### **Create `.env` File**
 Inside the project directory, create a `.env` file with the following keys:
 ```env
