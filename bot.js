@@ -63,8 +63,14 @@ bot.on("location", async (ctx) => {
         const { latitude, longitude } = ctx.message.location;
         console.log(`📍 Received location from ${user.first_name} (ID: ${userId}): Lat ${latitude}, Lon ${longitude}`);
 
+        const params = new URLSearchParams({
+            lat: latitude,
+            lon: longitude,
+            appid: process.env.WEATHER_API_KEY,
+            units: "imperial"
+        });
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?${params.toString()}`;
         // Get weather data from OpenWeather API
-        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${process.env.WEATHER_API_KEY}&units=imperial`;
         console.log(`🌍 Fetching weather data from: ${weatherUrl}`);
 
         const weatherResponse = await axios.get(weatherUrl);
