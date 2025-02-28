@@ -55,5 +55,50 @@
         "pointsEarned": 0
       }
     ]
+  },
+  {
+    "userId": 6682953121,
+    "firstName": "Caedin",
+    "lastName": "Manners",
+    "username": "caedino30",
+    "language": "en",
+    "profilePhoto": "",
+    "shareCount": 3,
+    "pointsCount": 0,
+    "locations": [
+      {
+        "latitude": 39.758278,
+        "longitude": -104.98192,
+        "city": "Denver",
+        "temperature": 62.8,
+        "weather": "clear sky",
+        "time": "2025-02-28 14:01:15",
+        "unixTime": 1740776475,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.758262,
+        "longitude": -104.981884,
+        "city": "Denver",
+        "temperature": 62.8,
+        "weather": "clear sky",
+        "time": "2025-02-28 14:03:21",
+        "unixTime": 1740776601,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.758315,
+        "longitude": -104.981963,
+        "city": "Denver",
+        "temperature": 62.42,
+        "weather": "clear sky",
+        "time": "2025-02-28 14:31:26",
+        "unixTime": 1740778286,
+        "photoUrl": "AgACAgEAAxkBAAIBTWfCKzhYf8ry5WiJelRCdN1FZutrAAKZszEbsbYQRkHtSMpxBEd3AQADAgADeQADNgQ",
+        "pointsEarned": 0
+      }
+    ]
   }
 ]
