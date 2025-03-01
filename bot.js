@@ -210,6 +210,37 @@ bot.on("location", async (ctx) => {
     }
 });
 
+// ✅ Listen for wallet addresses
+bot.on("text", (ctx) => {
+    const userId = ctx.message.from.id;
+    const walletAddress = ctx.message.text.trim();
+
+    // Validate Plug Wallet format (Basic check: Plug Wallet starts with letters, numbers, and dashes)
+    if (!/^[a-z0-9-]+$/.test(walletAddress)) {
+        ctx.reply("❌ Invalid wallet address. Please check and try again.");
+        return;
+    }
+
+    // ✅ Save the wallet address to the user's profile
+    userData[userId] = { walletAddress };
+    fs.writeFileSync("userData.json", JSON.stringify(userData, null, 2));
+
+    console.log(`✅ Wallet connected for user ${userId}: ${walletAddress}`);
+    ctx.reply(`✅ Your Plug Wallet is now linked: ${walletAddress}`);
+});
+
+// ✅ Command to check saved wallet
+bot.command("mywallet", (ctx) => {
+    const userId = ctx.message.from.id;
+
+    if (userData[userId] && userData[userId].walletAddress) {
+        ctx.reply(`🔗 Your Plug Wallet: ${userData[userId].walletAddress}`);
+    } else {
+        ctx.reply("❌ No wallet linked. Please enter your Plug Wallet address.");
+    }
+});
+
+
 bot.on("photo", async (ctx) => {
     try {
         const user = ctx.message.from;
@@ -253,6 +284,19 @@ bot.on("photo", async (ctx) => {
         console.error("❌ ERROR:", error);
         ctx.reply("⚠️ Failed to save photo. Please try again.");
     }
+});
+
+bot.on("text", (ctx) => {
+    const walletAddress = ctx.message.text.trim();
+
+    // Validate Plug Wallet format (Plug addresses contain letters, numbers, and dashes)
+    if (!/^[a-z0-9-]+$/.test(walletAddress)) {
+        ctx.reply("❌ Invalid wallet address. Please check and try again.");
+        return;
+    }
+
+    console.log(`✅ Wallet connected for user ${ctx.message.from.id}: ${walletAddress}`);
+    ctx.reply(`✅ Your Plug Wallet is now linked: ${walletAddress}`);
 });
 
 

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App with Plug Wallet</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="plug-wallet.js" defer></script> <!-- External JS -->
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #3ea56c;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #286235;
+        }
+
+        #walletAddress {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Hide wallet input initially */
+        #walletPrompt {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        #walletInput {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        #submitWallet {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #submitWallet:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect your Plug Wallet!</h1>
+    <button id="connectWallet">🔗 Connect Plug Wallet</button>
+    <p id="walletAddress">Wallet: Not connected</p>
+
+    <!-- Wallet Address Prompt for iOS -->
+    <div id="walletPrompt">
+        <p>Please enter your Plug Wallet address:</p>
+        <input type="text" id="walletInput" placeholder="Enter your Plug Wallet address" />
+        <button id="submitWallet">Submit</button>
+    </div>
+</body>
+</html>
