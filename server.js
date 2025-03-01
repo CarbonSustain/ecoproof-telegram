@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 
 
 const app = express();
@@ -12,6 +13,8 @@ app.use(express.static("public"));
 const PORT = process.env.PORT || 3000; // Fetch PORT from .env, fallback to 3000 if undefined
 
 const DATA_FILE = "data.json";
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
 
 // Function to read and sort leaderboard
 const getLeaderboard = () => {
@@ -45,7 +48,22 @@ app.get("/api/leaderboard", (req, res) => {
     res.json(leaderboard);
 });
 
-app.get("/submissions", (req, res) => {
+
+// get file_path from Telegram API
+async function getTelegramFileUrl(fileId) {
+    try {
+        const response = await axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+        if (response.data.ok) {
+            const filePath = response.data.result.file_path;
+            return `https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`;
+        }
+    } catch (error) {
+        console.error("❌ Error fetching Telegram file:", error);
+    }
+    return null; // Return null if the request fails
+}
+
+app.get("/submissions", async (req, res) => {
     if (!fs.existsSync(DATA_FILE)) return res.json({ active: [], rewarded: [] });
     
     const rawData = fs.readFileSync(DATA_FILE);
@@ -53,15 +71,13 @@ app.get("/submissions", (req, res) => {
 
     let active = [];
     let rewarded = [];
-    
-    // ✅ Loop through each user (since data.json is an array)
-    users.forEach(user => {
+
+    for (const user of users) {
         if (user.locations && Array.isArray(user.locations)) {
-            user.locations.forEach(location => {
-                // ✅ Structure each location as a submission
+            for (const location of user.locations) {
                 const submission = {
-                    userId: user.userId,  
-                    username: user.username || "Unknown",
+                    userId: user.userId,
+                    username: user.username || "Unknown", 
                     city: location.city || "Unknown City",
                     latitude: location.latitude,
                     longitude: location.longitude,
@@ -72,17 +88,26 @@ app.get("/submissions", (req, res) => {
                     pointsEarned: location.pointsEarned || 0
                 };
 
+                // 🔥 Convert Telegram File ID to an image URL asynchronously
+                if (location.photoUrl) {
+                    try {
+                        submission.photoUrl = await getTelegramFileUrl(location.photoUrl);
+                    } catch (error) {
+                        console.error("Error fetching image URL:", error);
+                    }
+                }
+
                 // ✅ Filter based on `pointsEarned`
                 if (location.pointsEarned === 0) {
                     active.push(submission);
                 } else {
                     rewarded.push(submission);
                 }
-            });
-        }    
-    });
+            }
+        }
+    }
     res.json({ active, rewarded });
-})
+});
 
 // Start the server
 app.listen(PORT, () => {
