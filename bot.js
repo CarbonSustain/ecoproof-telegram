@@ -49,8 +49,8 @@ bot.start((ctx) => {
         "Welcome! Choose an option:",
         Markup.keyboard([
             [Markup.button.locationRequest("📍 Share Location")], // Share location button
-            [Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL)], // Mini App button
-            [Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL)]  // Mini App button
+            [Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard")], // Mini App button
+            [Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao")]  // Mini App button
         ]).resize()
     );
 });
