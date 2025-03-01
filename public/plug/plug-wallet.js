@@ -76,14 +76,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("⚠️ Cannot send wallet address. Telegram user not detected.");
       return;
     }
-
-    const botApiUrl = "https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage"; // Replace with your bot's API URL
+    
+    const botApiUrl = "https://api.telegram.org/bot7830025691:AAFByMGesCZjxJUs14lcRzfV_pFhFC_jjXA/sendMessage"; // Replace with your bot's API URL
     const chatId = telegramUser.id; // Get the Telegram user ID
 
-    // ✅ Handle wallet address submission
-    submitWalletButton.addEventListener("click", () => {
-      const walletAddress = walletInput.value.trim();
-      if (!walletAddress) {
+
+// ✅ Handle wallet address submission
+submitWallet.addEventListener("click", () => {
+    const walletAddress = walletInput.value.trim();
+    if (!walletAddress) {
         alert("❌ Please enter a valid Plug Wallet address.");
         return;
       }
