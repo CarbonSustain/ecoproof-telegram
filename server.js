@@ -34,6 +34,7 @@ app.use((req, res, next) => {
 
 app.use("/leaderboard", express.static(path.join(__dirname, "public/leaderboard")));
 app.use("/dao", express.static(path.join(__dirname, "public/dao")));
+app.use("/plug", express.static(path.join(__dirname, "public/plug")));
 
 
 // API Route to get leaderboard data

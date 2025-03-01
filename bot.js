@@ -4,6 +4,8 @@ const axios = require("axios");
 const moment = require("moment");
 const fs = require("fs");
 
+const cbor = require("cbor");
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DATA_FILE = "data.json";
 
@@ -41,6 +43,45 @@ const saveData = (data) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 };
 
+async function submitWeatherData(user, latitude, longitude, city, temperature, weather) {
+    const canisterId = "avqkn-guaaa-aaaaa-qaaea-cai&id=b77ix-eeaaa-aaaaa-qaada-cai";  // Replace with your actual canister ID
+    const url = `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
+
+    // Data payload with function parameters
+    const payload = {
+        canister_id: canisterId,
+        method_name: "submit_weather_data",
+        args: [user, latitude, longitude, city, temperature, weather]
+    };
+
+    // debugging
+    console.log("payload before CBOR encoding:", JSON.stringify(payload, null, 2));
+
+    // Send request to IC canister
+    try {
+        // Convert payload to CBOR
+        const cborPayload = cbor.encode(payload);
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/cbor" },
+            body: cborPayload
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+        }
+
+        // Read and decode CBOR response
+        const responseData = await response.arrayBuffer();
+        const decodedResponse = cbor.decode(Buffer.from(responseData));
+        console.log("Response from Canister:", decodedResponse);
+        return decodedResponse;
+    } catch (error) {
+        console.error("Error submitting weather data:", error);
+        return { error: error.message };
+    }
+}
+
 const userStates = {}; // Store user actions before location sharing
 
 // Welcome message upon /start command prompts users to share location
@@ -48,17 +89,19 @@ bot.start((ctx) => {
     ctx.reply(
         "Welcome! Choose an option:",
         Markup.keyboard([
-            [Markup.button.locationRequest("📍 Share Location")], // Share location button
-            [Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard")], // Mini App button
-            [Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao")]  // Mini App button
+            [Markup.button.locationRequest("📍 Share Location"), Markup.button.webApp("🔌 Connect Plug Wallet", process.env.NGROK_URL + "/plug")], // Share location button
+            [Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"), Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao")] // Mini App button
         ]).resize()
     );
 });
+
+
 
 // Handle User Location
 bot.on("location", async (ctx) => {
     console.log("📍 Location received from Telegram!");
     try {
+        const chatId = ctx.chat.id;
         const userId = ctx.message.from.id;
         const user = ctx.message.from;
         const { latitude, longitude } = ctx.message.location;
@@ -94,6 +137,9 @@ bot.on("location", async (ctx) => {
         const distance = getDistance(latitude, longitude, TARGET_LOCATION.latitude, TARGET_LOCATION.longitude);
         let points = 0;
 
+        // Check if the user already exists in data.json
+        let userEntry = storedData.find(entry => entry.userId === user.id);
+
         if (distance <= TARGET_LOCATION.radiusMeters) {
             // Prevent awarding points if the last location was already inside the radius
             const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
@@ -102,9 +148,6 @@ bot.on("location", async (ctx) => {
                 points += 1;
             }
         }
-
-        // Check if the user already exists in data.json
-        let userEntry = storedData.find(entry => entry.userId === user.id);
 
         if (!userEntry) { // ✅ Only create new entry if user is completely new
             userEntry = {
@@ -153,6 +196,12 @@ bot.on("location", async (ctx) => {
 
 
         console.log("✅ Response sent to user!");
+
+        const response = await submitWeatherData(user, latitude, longitude, city, temperature, weather)
+        console.log("📡 Response from backend canister:", response);
+
+        ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
+
 
     } catch (error) {
         console.error(error);

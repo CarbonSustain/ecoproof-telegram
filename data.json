@@ -63,8 +63,8 @@
     "username": "caedino30",
     "language": "en",
     "profilePhoto": "",
-    "shareCount": 3,
-    "pointsCount": 0,
+    "shareCount": 10,
+    "pointsCount": 2,
     "locations": [
       {
         "latitude": 39.758278,
@@ -97,6 +97,83 @@
         "time": "2025-02-28 14:31:26",
         "unixTime": 1740778286,
         "photoUrl": "AgACAgEAAxkBAAIBTWfCKzhYf8ry5WiJelRCdN1FZutrAAKZszEbsbYQRkHtSMpxBEd3AQADAgADeQADNgQ",
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.781955,
+        "longitude": -104.969496,
+        "city": "Commerce City",
+        "temperature": 43.12,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:13:40",
+        "unixTime": 1740806020,
+        "photoUrl": null,
+        "pointsEarned": 1
+      },
+      {
+        "latitude": 39.781971,
+        "longitude": -104.969531,
+        "city": "Commerce City",
+        "temperature": 43.32,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:26:15",
+        "unixTime": 1740806775,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.781949,
+        "longitude": -104.969524,
+        "city": "Commerce City",
+        "temperature": 43.32,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:28:17",
+        "unixTime": 1740806897,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.781863,
+        "longitude": -104.969494,
+        "city": "Commerce City",
+        "temperature": 43.32,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:30:20",
+        "unixTime": 1740807020,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.781912,
+        "longitude": -104.969481,
+        "city": "Commerce City",
+        "temperature": 43.32,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:31:33",
+        "unixTime": 1740807093,
+        "photoUrl": null,
+        "pointsEarned": 1
+      },
+      {
+        "latitude": 39.781933,
+        "longitude": -104.969488,
+        "city": "Commerce City",
+        "temperature": 42.8,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:36:52",
+        "unixTime": 1740807412,
+        "photoUrl": null,
+        "pointsEarned": 0
+      },
+      {
+        "latitude": 39.781955,
+        "longitude": -104.969496,
+        "city": "Commerce City",
+        "temperature": 42.8,
+        "weather": "clear sky",
+        "time": "2025-02-28 22:40:25",
+        "unixTime": 1740807625,
+        "photoUrl": null,
         "pointsEarned": 0
       }
     ]

@@ -79,9 +79,64 @@
     <div id="rewarded" class="content">
         <h3>Rewarded Submissions</h3>
         <table id="rewarded-submissions">
-            <tr><th>Submission</th><th>Status</th></tr>
+            <thead>
+                <tr>
+                    <th>Submission</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="rewarded-body">
+                <!-- Data rows will be inserted here -->
+            </tbody>
         </table>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tableBody = document.getElementById("rewarded-body");
+            
+            fetch("/submissions")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Fetched Data:", data); // Debugging Step
+
+                // ✅ Ensure `rewarded` array exists and is valid
+                if (!data.rewarded || !Array.isArray(data.active)) {
+                    console.error("No rewarded submissions found or incorrect data format.");
+                    return;
+                }
+                // ✅ Loop through active submissions and populate table
+                data.rewarded.forEach(submission => {
+                    let row = document.createElement("tr");
+                    const DEFAULT_IMAGE = "/dao/no_image.jpg";
+                    let imageUrl = submission.photoUrl ? submission.photoUrl : "https://via.placeholder.com/150";
+                    row.innerHTML = `
+                    <td>
+                            <div class="submission-container">
+                                <img src="${submission.photoUrl || DEFAULT_IMAGE}" class="submission-image" alt="Location Photo">
+                                <div class="submission-info">
+                                    <strong>${submission.city || "Unknown City"}</strong>
+                                    <small>📍 Lat: ${submission.latitude}, Long: ${submission.longitude}</small>
+                                    <small>🌦 Weather: ${submission.weather || "N/A"}</small>
+                                    <small>🌡 Temp: ${submission.temperature || "N/A"}°F</small>
+                                    <small>🕒 ${submission.time}</small>
+                                </div>
+                            </div>
+                        </td>
+                    <td>
+                        <!-- Fill with right side of table -->
+                        </td>
+                        `;
+                        tableBody.appendChild(row)
+                    });
+                })
+                .catch(error => console.error("Error loading submissions:", error));
+            });
+            </script>
 
     <script>
         function showTab(tab) {
