@@ -49,13 +49,21 @@
                 // ✅ Loop through active submissions and populate table
                 data.active.forEach(submission => {
                     let row = document.createElement("tr");
+                    const DEFAULT_IMAGE = "/dao/no_image.jpg";
+                    let imageUrl = submission.photoUrl ? submission.photoUrl : "https://via.placeholder.com/150";
                     row.innerHTML = `
                     <td>
-                        <strong>${submission.city || "Unknown City"}</strong><br>
-                        <small>Lat: ${submission.latitude}, Long: ${submission.longitude}</small><br>
-                        <em>Weather: ${submission.weather || "N/A"}, Temp: ${submission.temperature || "N/A"}°F</em><br>
-                        <img src="${submission.photoUrl || 'https://via.placeholder.com/100'}" width="100" height="100" alt="Location Photo">
-                    </td>
+                            <div class="submission-container">
+                                <img src="${submission.photoUrl || DEFAULT_IMAGE}" class="submission-image" alt="Location Photo">
+                                <div class="submission-info">
+                                    <strong>${submission.city || "Unknown City"}</strong>
+                                    <small>📍 Lat: ${submission.latitude}, Long: ${submission.longitude}</small>
+                                    <small>🌦 Weather: ${submission.weather || "N/A"}</small>
+                                    <small>🌡 Temp: ${submission.temperature || "N/A"}°F</small>
+                                    <small>🕒 ${submission.time}</small>
+                                </div>
+                            </div>
+                        </td>
                     <td>
                         <button class="vote-button yes-button">Yes 👍 (0)</button>
                         <button class="vote-button no-button">No 👎 (0)</button>

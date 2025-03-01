@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #121212;
+    background-color: #8ca385;
     color: #ffffff;
     text-align: center;
     padding: 20px;
@@ -41,9 +41,9 @@ body {
 }
 
 table { 
-    width: 100%;
+    width: 50%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin: auto;
 }
 
 th {
@@ -66,3 +66,37 @@ button {
     padding: 8px 12px;
     cursor: pointer;
 }
+
+
+    /* Styling for the submission layout */
+    .submission-container {
+        display: flex;
+        align-items: center; /* Align text and image */
+        gap: 15px; /* Spacing between image and text */
+    }
+
+    .submission-image {
+        width: 150px; /* Increase image size */
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    .submission-info {
+        display: flex;
+        flex-direction: column;
+        font-size: 14px;
+    }
+
+    .submission-info strong {
+        font-size: 16px;
+    }
+
+    .submission-info small {
+        color: #555;
+    }
+
+    td {
+        padding: 15px;
+        vertical-align: top; /* Align content to the top */
+    }
