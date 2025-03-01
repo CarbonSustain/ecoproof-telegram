@@ -42,7 +42,7 @@ const saveData = data => {
 };
 
 async function submitWeatherData(telegram_id, recipient_address, latitude, longitude, city, temperature, weather) {
-  const canisterId = "avqkn-guaaa-aaaaa-qaaea-cai&id=b77ix-eeaaa-aaaaa-qaada-cai"; // Replace with your actual canister ID
+  const canisterId = "bd3sg-teaaa-aaaaa-qaaba-cai";
   const url = `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
 
   // Data payload with function parameters
@@ -142,6 +142,7 @@ bot.on("location", async ctx => {
 
     // Check if the user already exists in data.json
     let userEntry = storedData.find(entry => entry.userId === user.id);
+    console.log(`user: ${userEntry.userId}`);
 
     if (distance <= TARGET_LOCATION.radiusMeters) {
       // Prevent awarding points if the last location was already inside the radius
@@ -195,7 +196,7 @@ bot.on("location", async ctx => {
 
     const response = await submitWeatherData(
       userId,
-      userEntry.walletAddress,
+      "b8063e98ee44802de4e40f2bb30820ebb2a4d5730dbbc8b95dbd7620e6941723",
       latitude,
       longitude,
       city,
@@ -214,17 +215,24 @@ bot.on("location", async ctx => {
 
 // ✅ Listen for wallet addresses
 bot.on("text", ctx => {
-  const userId = ctx.message.from.id;
-  const walletAddress = ctx.message.text.trim();
+    console.log("bot hears wallet");
+    const userId = ctx.message.from.id;
+    const walletAddress = ctx.message.text.trim();
+    console.log(`userID: ${userID}`)
+    console.log(`wallet address: ${walletAddress}`)
 
   // Validate Plug Wallet format (Basic check: Plug Wallet starts with letters, numbers, and dashes)
   if (!/^[a-z0-9-]+$/.test(walletAddress)) {
     ctx.reply("❌ Invalid wallet address. Please check and try again.");
     return;
   }
+  console.log("flow 1")
+
   let storedData = readData();
   let userEntry = storedData.find(entry => entry.userId === userId);
+  console.log(`${userEntry}`);
   if (!userEntry) {
+    console.log("flow 2");
     userEntry = {
       userId: userId,
       walletAddress: walletAddress,
@@ -298,6 +306,7 @@ bot.on("photo", async ctx => {
 });
 
 bot.on("text", ctx => {
+    console.log("bot hears wallet number2");
   const walletAddress = ctx.message.text.trim();
 
   // Validate Plug Wallet format (Plug addresses contain letters, numbers, and dashes)

@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const connectWalletButton = document.getElementById("connectWallet");
   const walletAddressDisplay = document.getElementById("walletAddress");
+  const submitWallet = document.getElementById("submitWallet");
+
 
   connectWalletButton.addEventListener("click", () => {
     if (isMobile()) {
@@ -12,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to check if the user is on a mobile device
   function isMobile() {
+    console.log("isMobile called");
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
     return /android|iphone|ipad|ipod/i.test(userAgent);
   }
@@ -65,12 +68,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("This function is only for mobile devices.");
       return;
     }
+    console.log("is Mobile");
 
     // Show the wallet input field in the Mini App
     document.getElementById("walletPrompt").style.display = "block";
   }
 
   function sendWalletToTelegramBot(walletAddress) {
+    console.log(`sendWallettoTelegramBot: ${walletAddress}`);
     const telegramUser = window.Telegram.WebApp.initDataUnsafe.user;
     if (!telegramUser) {
       alert("⚠️ Cannot send wallet address. Telegram user not detected.");
@@ -79,11 +84,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     const botApiUrl = "https://api.telegram.org/bot7830025691:AAFByMGesCZjxJUs14lcRzfV_pFhFC_jjXA/sendMessage"; // Replace with your bot's API URL
     const chatId = telegramUser.id; // Get the Telegram user ID
+    
 
 
 // ✅ Handle wallet address submission
 submitWallet.addEventListener("click", () => {
+    console.log("in eventlistener");
+    console.log(`${walletInput.value}`);
     const walletAddress = walletInput.value.trim();
+    console.log("click detected")
     if (!walletAddress) {
         alert("❌ Please enter a valid Plug Wallet address.");
         return;
@@ -126,19 +135,23 @@ walletInput.addEventListener("blur", () => {
 });
 
 document.getElementById("submitWallet").addEventListener("click", async () => {
-  // Ensure the Telegram Web Apps API is available
-  const tg = window.Telegram.WebApp;
-  const walletAddress = document.getElementById("walletInput").value.trim();
-
-  if (walletAddress) {
     try {
-      // Close the Telegram MiniApp and return to the bot
-      tg.close();
-    } catch (error) {
-      console.error("Error submitting wallet address:", error);
-      alert("Failed to submit wallet address. Please try again.");
+    // Ensure the Telegram Web Apps API is available
+    const tg = window.Telegram.WebApp;
+    if (true) {
+        tg.close
     }
-  } else {
-    alert("Please enter a valid Plug Wallet address.");
+    const walletAddress = document.getElementById("walletInput").value.trim();
+    if (walletAddress) {
+      
+        sendWalletToTelegramBot(walletAddress);
+        // Close the Telegram MiniApp and return to the bot
+        tg.close();
+    } else {
+      alert("Please enter a valid Plug Wallet address.");
+    }
+} catch (error) {
+    console.error("Error submitting wallet address:", error);
+    alert("Failed to submit wallet address. Please try again.");
   }
-});
+  });
