@@ -1,10 +1,13 @@
 require("dotenv").config();
+
 const { Telegraf, Markup } = require("telegraf");
 const axios = require("axios");
 const moment = require("moment");
 const fs = require("fs");
 
 const cbor = require("cbor");
+
+const { Actor, HttpAgent } = require("@dfinity/agent");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DATA_FILE = "data.json";
@@ -41,44 +44,76 @@ const saveData = data => {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 };
 
-async function submitWeatherData(telegram_id, recipient_address, latitude, longitude, city, temperature, weather) {
-  const canisterId = "bd3sg-teaaa-aaaaa-qaaba-cai";
-  const url = `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
+let idlFactory;
+(async () => {
+  const candid = await import("./icp-bindings/dao_backend/service.did.js");
+  idlFactory = candid.idlFactory;
+  const agent = new HttpAgent({ host: "http://127.0.0.1:4943" });
+  await agent.fetchRootKey(); // Required for local dev
 
-  // Data payload with function parameters
-  const payload = {
-    canister_id: canisterId,
-    method_name: "submit_weather_data",
-    args: [telegram_id, recipient_address, latitude, longitude, city, temperature, weather],
-  };
+  const daoBackendActor = Actor.createActor(idlFactory, {
+    agent,
+    canisterId: "bkyz2-fmaaa-aaaaa-qaaaq-cai", // Replace with actual ID
+  });
 
-  // debugging
-  console.log("payload before CBOR encoding:", JSON.stringify(payload, null, 2));
-
-  // Send request to IC canister
-  try {
-    // Convert payload to CBOR
-    const cborPayload = cbor.encode(payload);
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/cbor" },
-      body: cborPayload,
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+  // ✅ Now that the actor exists, define this function
+  async function submitWeatherData(telegram_id, recipient_address, latitude, longitude, city, temperature, weather) {
+    try {
+      const submissionId = await daoBackendActor.submit_weather_data(
+        telegram_id.toString(),
+        recipient_address,
+        latitude,
+        longitude,
+        city,
+        temperature,
+        weather
+      );
+      console.log("✅ Weather data submitted to ICP canister. Submission ID:", submissionId);
+      return submissionId;
+    } catch (err) {
+      console.error("❌ Failed to submit data to canister:", err);
+      return null;
     }
-
-    // Read and decode CBOR response
-    const responseData = await response.arrayBuffer();
-    const decodedResponse = cbor.decode(Buffer.from(responseData));
-    console.log("Response from Canister:", decodedResponse);
-    return decodedResponse;
-  } catch (error) {
-    console.error("Error submitting weather data:", error);
-    return { error: error.message };
   }
-}
+
+// async function submitWeatherData(telegram_id, recipient_address, latitude, longitude, city, temperature, weather) {
+//   const canisterId = "bw4dl-smaaa-aaaaa-qaacq-cai";
+//   const url = `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
+
+//   // Data payload with function parameters
+//   const payload = {
+//     canister_id: canisterId,
+//     method_name: "submit_weather_data",
+//     args: [telegram_id, recipient_address, latitude, longitude, city, temperature, weather],
+//   };
+
+//   // debugging
+//   console.log("payload before CBOR encoding:", JSON.stringify(payload, null, 2));
+
+//   // Send request to IC canister
+//   try {
+//     // Convert payload to CBOR
+//     const cborPayload = cbor.encode(payload);
+//     const response = await fetch(url, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/cbor" },
+//       body: cborPayload,
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+//     }
+
+//     // Read and decode CBOR response
+//     const responseData = await response.arrayBuffer();
+//     const decodedResponse = cbor.decode(Buffer.from(responseData));
+//     console.log("Response from Canister:", decodedResponse);
+//     return decodedResponse;
+//   } catch (error) {
+//     console.error("Error submitting weather data:", error);
+//     return { error: error.message };
+//   }
+// }
 
 const userStates = {}; // Store user actions before location sharing
 
@@ -169,7 +204,21 @@ bot.on("location", async ctx => {
 
     const timestamp = Date.now(); // Current timestamp
 
-    // Add the new location data to the user's history
+    // calling backend ICP canister
+    const response = await submitWeatherData(
+      userId,
+      "b8063e98ee44802de4e40f2bb30820ebb2a4d5730dbbc8b95dbd7620e6941723", // replace with user's wallet address when that gets implemented
+      latitude,
+      longitude,
+      city,
+      temperature,
+      weather
+    );
+    console.log("📡 Response from backend canister:", response);
+
+    ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
+
+    // Add the new location to the user's location array in data.json
     const newLocation = {
       latitude,
       longitude,
@@ -180,6 +229,7 @@ bot.on("location", async ctx => {
       unixTime,
       photoUrl: null,
       pointsEarned: points,
+      submissionId: Number(response)
     };
 
     userEntry.locations.push(newLocation);
@@ -194,18 +244,6 @@ bot.on("location", async ctx => {
 
     console.log("✅ Response sent to user!");
 
-    const response = await submitWeatherData(
-      userId,
-      "b8063e98ee44802de4e40f2bb30820ebb2a4d5730dbbc8b95dbd7620e6941723",
-      latitude,
-      longitude,
-      city,
-      temperature,
-      weather
-    );
-    console.log("📡 Response from backend canister:", response);
-
-    ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
   } catch (error) {
     console.error(error);
     console.error("❌ ERROR:", error);
@@ -322,3 +360,5 @@ bot.on("text", ctx => {
 // Launch the bot
 bot.launch();
 console.log("🤖 Telegram bot is running...");
+
+})();
