@@ -144,6 +144,22 @@ bot.on("location", async ctx => {
     const { latitude, longitude } = ctx.message.location;
     console.log(`📍 Received location from ${user.first_name} (ID: ${userId}): Lat ${latitude}, Lon ${longitude}`);
 
+    // grabbing user profile photo from Telegram API
+    let profilePhotoUrl = "";
+    try {
+    // Get user profile photos
+    const photos = await bot.telegram.getUserProfilePhotos(userId, 0, 1);
+
+    if (photos.total_count > 0) {
+      const fileId = photos.photos[0][0].file_id; // Get the smallest version
+      const file = await bot.telegram.getFile(fileId);
+      profilePhotoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
+      console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
+    }
+  } catch (error) {
+    console.error("❌ Failed to fetch profile photo:", error.message);
+  }
+
     const params = new URLSearchParams({
       lat: latitude,
       lon: longitude,
@@ -177,7 +193,23 @@ bot.on("location", async ctx => {
 
     // Check if the user already exists in data.json
     let userEntry = storedData.find(entry => entry.userId === user.id);
-    console.log(`user: ${userEntry.userId}`);
+    if (!userEntry) {
+      console.log("🆕 New user detected. Creating a new entry...");
+      userEntry = {
+        userId,
+        firstName: user.first_name,
+        lastName: user.last_name || "",
+        username: user.username || "",
+        language: user.language_code,
+        profilePhoto: profilePhotoUrl || "",
+        shareCount: 0,
+        pointsCount: 0,
+        locations: [],
+      };
+      storedData.push(userEntry);
+    } else {
+      console.log(`user: ${userEntry.userId}`);
+    }
 
     if (distance <= TARGET_LOCATION.radiusMeters) {
       // Prevent awarding points if the last location was already inside the radius
@@ -188,13 +220,18 @@ bot.on("location", async ctx => {
       }
     }
 
-    userEntry.userId = userId;
+    // Set/update dynamic fields (applies to both new & returning users)
     userEntry.firstName = user.first_name;
     userEntry.lastName = user.last_name || "";
     userEntry.username = user.username || "";
     userEntry.language = user.language_code;
-    userEntry.profilePhoto = user.photo_url || "";
-    userEntry.locations = userEntry.locations || [];
+    
+    // Update profile photo only if it's different from the saved one
+    if (profilePhotoUrl && profilePhotoUrl !== userEntry.profilePhoto) {
+      console.log("🔄 Updating profile photo URL...");
+      userEntry.profilePhoto = profilePhotoUrl;
+    }
+
     userEntry.shareCount = (userEntry.shareCount || 0) + 1;
     userEntry.pointsCount = (userEntry.pointsCount || 0) + points;
 

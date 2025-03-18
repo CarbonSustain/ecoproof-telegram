@@ -62,110 +62,21 @@
     "lastName": "Manners",
     "username": "caedino30",
     "language": "en",
-    "profilePhoto": "",
-    "shareCount": 9,
-    "pointsCount": 1,
+    "profilePhoto": "https://api.telegram.org/file/bot7830025691:AAFByMGesCZjxJUs14lcRzfV_pFhFC_jjXA/photos/file_20.jpg",
+    "shareCount": 1,
+    "pointsCount": 0,
     "locations": [
       {
-        "latitude": 39.758289,
-        "longitude": -104.981863,
-        "city": "Denver",
-        "temperature": 53.74,
-        "weather": "clear sky",
-        "time": "2025-03-01 09:47:00",
-        "unixTime": 1740847620,
-        "photoUrl": "AgACAgEAAxkBAAICfGfDOh2BvPunmt5lNU3MnXmm23CYAALbrjEbqG0YRjb7G0O9lrZYAQADAgADeQADNgQ",
-        "pointsEarned": 0
-      },
-      {
-        "latitude": 39.78209,
-        "longitude": -104.969965,
-        "city": "Commerce City",
-        "temperature": 65.44,
-        "weather": "clear sky",
-        "time": "2025-03-01 13:53:58",
-        "unixTime": 1740862438,
-        "photoUrl": "AgACAgEAAxkBAAICqmfDc_Qo49N6AAE--xvLKQABkZmUCRIAAv6uMRuobRhGzId9t1LgkU8BAAMCAAN5AAM2BA",
-        "pointsEarned": 0
-      },
-      {
-        "latitude": 39.781975,
-        "longitude": -104.969623,
-        "city": "Commerce City",
-        "temperature": 65.68,
-        "weather": "clear sky",
-        "time": "2025-03-01 14:15:08",
-        "unixTime": 1740863708,
-        "photoUrl": "AgACAgEAAxkBAAICuWfDePuBI6gWCIy0xW0cPjrTb-lgAAIBrzEbqG0YRqAV39B9Fr2OAQADAgADeQADNgQ",
-        "pointsEarned": 1
-      },
-      {
-        "latitude": 37.873636,
-        "longitude": -122.257608,
+        "latitude": 37.864368,
+        "longitude": -122.254129,
         "city": "Berkeley",
-        "temperature": 59.04,
-        "weather": "broken clouds",
-        "time": "2025-03-11 16:11:19",
-        "unixTime": 1741734679,
-        "photoUrl": "AgACAgEAAxkBAAIC5GfQwzFB9MqWDd-g9_SpyKOs5wT0AAL7rTEbOWCIRuR33v-BgrIxAQADAgADeQADNgQ",
-        "pointsEarned": 0
-      },
-      {
-        "latitude": 37.873636,
-        "longitude": -122.257608,
-        "city": "Berkeley",
-        "temperature": 58.69,
-        "weather": "broken clouds",
-        "time": "2025-03-11 16:23:33",
-        "unixTime": 1741735413,
-        "photoUrl": "AgACAgEAAxkBAAIC62fQxgIGt1__7LShMEcjHW9KLbNIAAIKrjEbOWCIRjzMBXcdZaGPAQADAgADeQADNgQ",
-        "pointsEarned": 0
-      },
-      {
-        "latitude": 37.873636,
-        "longitude": -122.257608,
-        "city": "Berkeley",
-        "temperature": 58.19,
-        "weather": "broken clouds",
-        "time": "2025-03-11 16:43:15",
-        "unixTime": 1741736595,
-        "photoUrl": "AgACAgEAAxkBAAIC82fQyqDG-ONvyNiNWDZhw4b_g-lrAAL-rjEbefOBRvmHqxSBdiA6AQADAgADeQADNgQ",
-        "pointsEarned": 0
-      },
-      {
-        "latitude": 37.873636,
-        "longitude": -122.257608,
-        "city": "Berkeley",
-        "temperature": 58.19,
-        "weather": "broken clouds",
-        "time": "2025-03-11 16:45:56",
-        "unixTime": 1741736756,
-        "photoUrl": null,
-        "pointsEarned": 0
-      },
-      {
-        "latitude": 37.873613,
-        "longitude": -122.257656,
-        "city": "Berkeley",
-        "temperature": 58.19,
-        "weather": "broken clouds",
-        "time": "2025-03-11 16:50:45",
-        "unixTime": 1741737045,
-        "photoUrl": null,
+        "temperature": 58.78,
+        "weather": "scattered clouds",
+        "time": "2025-03-18 15:02:29",
+        "unixTime": 1742335349,
+        "photoUrl": "AgACAgEAAxkBAAIDNWfZ7YytVjkGdYJH3JcAAYpPRvFSnwACSK4xG2890Eb5iNCSK4wwDgEAAwIAA3kAAzYE",
         "pointsEarned": 0,
-        "submissionId": 3
-      },
-      {
-        "latitude": 37.873624,
-        "longitude": -122.257632,
-        "city": "Berkeley",
-        "temperature": 58.06,
-        "weather": "broken clouds",
-        "time": "2025-03-11 16:56:34",
-        "unixTime": 1741737394,
-        "photoUrl": null,
-        "pointsEarned": 0,
-        "submissionId": 6
+        "submissionId": 4
       }
     ]
   }
