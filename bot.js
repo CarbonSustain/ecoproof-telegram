@@ -73,6 +73,25 @@ let idlFactory;
     }
   }
 
+  // ✅ Now that the actor exists, define this function
+  async function createTgUser(telegram_id, first_name, last_name, username, language_code, is_bot) {
+    try {
+      const submissionId = await daoBackendActor.create_tg_user(
+        telegram_id.toString(),
+        first_name,
+        last_name,
+        username,
+        language_code,
+        is_bot
+      );
+      console.log("✅ User data submitted to ICP canister. Submission ID:", submissionId);
+      return submissionId;
+    } catch (err) {
+      console.error("❌ Failed to submit user data to canister:", err);
+      return null;
+    }
+  }
+
   // async function submitWeatherData(telegram_id, recipient_address, latitude, longitude, city, temperature, weather) {
   //   const canisterId = "bw4dl-smaaa-aaaaa-qaacq-cai";
   //   const url = getCanisterCallUrl(canisterId)
@@ -116,23 +135,40 @@ let idlFactory;
   const userStates = {}; // Store user actions before location sharing
 
   // Welcome message upon /start command prompts users to share location
-  bot.start(ctx => {
-    const user = ctx.message.from;
-    const msg = "Welcome! Choose an option:" + user.first_name;
+  bot.start(async ctx => {
+    try {
+      const user = ctx.message.from;
+      const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
+      // calling backend ICP canister
 
-    ctx.reply(
-      msg,
-      Markup.keyboard([
-        [
-          Markup.button.locationRequest("📍 Share Location"),
-          Markup.button.webApp("🔌 Connect Plug Wallet", process.env.NGROK_URL + "/plug"),
-        ], // Share location button
-        [
-          Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"),
-          Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao"),
-        ], // Mini App button
-      ]).resize()
-    );
+      const response = await createTgUser(
+        user.id,
+        user.first_name,
+        user.last_name,
+        user.username,
+        user.language_code,
+        user.is_bot
+      );
+      console.log("📡 Response from backend canister:", response);
+      ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
+
+      ctx.reply(
+        msg,
+        Markup.keyboard([
+          [
+            Markup.button.locationRequest("📍 Share Location"),
+            Markup.button.webApp("🔌 Connect Plug Wallet", process.env.NGROK_URL + "/plug"),
+          ], // Share location button
+          [
+            Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"),
+            Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao"),
+          ], // Mini App button
+        ]).resize()
+      );
+    } catch (error) {
+      console.error("❌ Error in bot.start:", error);
+      ctx.reply("⚠️ An error occurred while processing your request.");
+    }
   });
 
   // Handle User Location
@@ -211,16 +247,13 @@ let idlFactory;
       } else {
         console.log(`user: ${userEntry.userId}`);
       }
-
       if (distance <= TARGET_LOCATION.radiusMeters) {
         // Prevent awarding points if the last location was already inside the radius
         const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
-
         if (!lastLocation || getDistance(lastLocation.latitude, lastLocation.longitude, latitude, longitude) > 5) {
           points += 1;
         }
       }
-
       // Set/update dynamic fields (applies to both new & returning users)
       userEntry.firstName = user.first_name;
       userEntry.lastName = user.last_name || "";
