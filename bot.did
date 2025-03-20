@@ -1,3 +1,4 @@
 service : {
   submit_weather_data: (text, text, float64, float64, text, float64, text) -> (nat64);
+  create_tg_user: (text, text, text, text, text, Bool) -> (nat64);
 }

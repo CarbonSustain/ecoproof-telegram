@@ -93,11 +93,6 @@ let idlFactory;
     }
   }
 
-  // async function submitWeatherData(telegram_id, recipient_address, latitude, longitude, city, temperature, weather) {
-  //   const canisterId = "bw4dl-smaaa-aaaaa-qaacq-cai";
-  //   const url = getCanisterCallUrl(canisterId)
-  //  `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
-
   // start by saving user's information into json
   // Welcome message upon /start command prompts users to share location
   bot.start(async ctx => {
@@ -115,7 +110,7 @@ let idlFactory;
         user.is_bot
       );
       console.log("📡 Response from backend canister:", response);
-      ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
+      ctx.reply(`✅ Weather data submitted successfully for ${user.id}.`);
 
       storedData = readData();
 
@@ -222,11 +217,9 @@ let idlFactory;
         const weatherUrl = getOWWeatherUrl(params);
         // Get weather data from OpenWeather API
         console.log(`🌍 Fetching weather data from: ${weatherUrl}`);
-
         const weatherResponse = await axios.get(weatherUrl);
         const weatherData = weatherResponse.data;
         console.log(`✅ Weather Data Fetched:`, weatherData);
-
         const city = weatherData.name;
         const temperature = weatherData.main.temp;
         const weather = weatherData.weather[0].description;
