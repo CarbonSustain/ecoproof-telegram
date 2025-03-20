@@ -7,7 +7,7 @@ const cbor = require("cbor");
 const { Actor, HttpAgent } = require("@dfinity/agent");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const DATA_FILE = "data.json";
-import { getOWWeatherUrl, getTelegramFileUrl, getCanisterCallUrl } from "../config/api.js";
+const { getOWWeatherUrl, getTelegramFileUrl, getCanisterCallUrl, API_BASE_URLS } = require("./config/api.js");
 
 // Hardcoded location ETH Denver
 const TARGET_LOCATION = {
@@ -117,8 +117,11 @@ let idlFactory;
 
   // Welcome message upon /start command prompts users to share location
   bot.start(ctx => {
+    const user = ctx.message.from;
+    const msg = "Welcome! Choose an option:" + user.first_name;
+
     ctx.reply(
-      "Welcome! Choose an option:",
+      msg,
       Markup.keyboard([
         [
           Markup.button.locationRequest("📍 Share Location"),
