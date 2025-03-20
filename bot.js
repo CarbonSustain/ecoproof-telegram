@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { Telegraf, Markup } = require("telegraf");
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 const axios = require("axios");
 const moment = require("moment");
 const fs = require("fs");
@@ -98,95 +98,91 @@ let idlFactory;
   //   const url = getCanisterCallUrl(canisterId)
   //  `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
 
-// start by saving user's information into json
-// Welcome message upon /start command prompts users to share location
-bot.start(async ctx => {
-  try {
-    const user = ctx.message.from;
-    const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
-    // calling backend ICP canister
-
-    const response = await createTgUser(
-      user.id,
-      user.first_name,
-      user.last_name,
-      user.username,
-      user.language_code,
-      user.is_bot
-    );
-    console.log("📡 Response from backend canister:", response);
-    ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
-
-  storedData = readData();
-
-  // Check if the user already exists in data.json
-  let userEntry = storedData.find(entry => entry.userId === user.id);
-  if (!userEntry) {
-    console.log("🆕 New user detected. Creating a new entry...");
-
-        // grabbing user profile photo from Telegram API
-        let profilePhotoUrl = '';
-        try {
-        // Get user profile photos
-        const photos = await bot.telegram.getUserProfilePhotos(user.id, 0, 1);
-    
-        if (photos.total_count > 0) {
-          const fileId = photos.photos[0][0].file_id; // Get the smallest version
-          const file = await bot.telegram.getFile(fileId);
-          profilePhotoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
-          console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch profile photo:", error.message);
-      }
-
-    const userPayload = {
-      userId: user.id,
-      firstName: user.first_name,
-      lastName: user.last_name || '',
-      username: user.username || '',
-      language: user.language_code || '',
-      profilePhoto: profilePhotoUrl,
-    };
-
+  // start by saving user's information into json
+  // Welcome message upon /start command prompts users to share location
+  bot.start(async ctx => {
     try {
-      const response = await fetch(`${process.env.NGROK_URL}/save-user`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userPayload)
-      });
-  
-      const result = await response.json();
-  
-      if (response.ok) {
-        console.log('✅ User saved:', result.message);
-      } else if (response.status === 409) {
-        console.log('⚠️ User already exists:', result.message);
+      const user = ctx.message.from;
+      const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
+      // calling backend ICP canister
+
+      const response = await createTgUser(
+        user.id,
+        user.first_name,
+        user.last_name,
+        user.username,
+        user.language_code,
+        user.is_bot
+      );
+      console.log("📡 Response from backend canister:", response);
+      ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
+
+      storedData = readData();
+
+      // Check if the user already exists in data.json
+      let userEntry = storedData.find(entry => entry.userId === user.id);
+      if (!userEntry) {
+        console.log("🆕 New user detected. Creating a new entry...");
+        // grabbing user profile photo from Telegram API
+        let profilePhotoUrl = "";
+        try {
+          // Get user profile photos
+          const photos = await bot.telegram.getUserProfilePhotos(user.id, 0, 1);
+
+          if (photos.total_count > 0) {
+            const fileId = photos.photos[0][0].file_id; // Get the smallest version
+            const file = await bot.telegram.getFile(fileId);
+            profilePhotoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
+            console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
+          }
+        } catch (error) {
+          console.error("❌ Failed to fetch profile photo:", error.message);
+        }
+        const userPayload = {
+          userId: user.id,
+          firstName: user.first_name,
+          lastName: user.last_name || "",
+          username: user.username || "",
+          language: user.language_code || "",
+          profilePhoto: profilePhotoUrl,
+        };
+        try {
+          const response = await fetch(`${process.env.NGROK_URL}/save-user`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userPayload),
+          });
+          const result = await response.json();
+          if (response.ok) {
+            console.log("✅ User saved:", result.message);
+          } else if (response.status === 409) {
+            console.log("⚠️ User already exists:", result.message);
+          } else {
+            console.error("❌ Failed to save user:", result.error || result);
+          }
+        } catch (error) {
+          console.error("🚨 Error calling /save-user:", error.message);
+        }
       } else {
-        console.error('❌ Failed to save user:', result.error || result);
+        console.log(`user: ${userEntry.userId}`);
       }
+      ctx.reply(
+        "Welcome! Choose an option:",
+        Markup.keyboard([
+          [
+            Markup.button.locationRequest("📍 Share Location"),
+            Markup.button.webApp("🔌 Connect TON Wallet", process.env.NGROK_URL + "/plug"),
+          ], // Share location button
+          [
+            Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"),
+            Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao"),
+          ], // Mini App button
+        ]).resize()
+      );
     } catch (error) {
-      console.error('🚨 Error calling /save-user:', error.message);
+      console.error("🚨 Error calling /save-user:", error.message);
     }
-  } else {
-    console.log(`user: ${userEntry.userId}`);
-  }
-
-  ctx.reply(
-    "Welcome! Choose an option:",
-    Markup.keyboard([
-      [
-        Markup.button.locationRequest("📍 Share Location"),
-        Markup.button.webApp("🔌 Connect TON Wallet", process.env.NGROK_URL + "/plug"),
-      ], // Share location button
-      [
-        Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"),
-        Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao"),
-      ], // Mini App button
-    ]).resize()
-  );
-});
-
+  });
 
   // Handle User Location
   bot.on("location", async ctx => {
@@ -197,140 +193,141 @@ bot.start(async ctx => {
       const user = ctx.message.from;
       const { latitude, longitude } = ctx.message.location;
       console.log(`📍 Received location from ${user.first_name} (ID: ${userId}): Lat ${latitude}, Lon ${longitude}`);
-    if (distance <= TARGET_LOCATION.radiusMeters) {
-      // Prevent awarding points if the last location was already inside the radius
-      const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
-
-      // grabbing user profile photo from Telegram API
-      let profilePhotoUrl = "";
-      try {
-        // Get user profile photos
-        const photos = await bot.telegram.getUserProfilePhotos(userId, 0, 1);
-
-        if (photos.total_count > 0) {
-          const fileId = photos.photos[0][0].file_id; // Get the smallest version
-          const file = await bot.telegram.getFile(fileId);
-          profilePhotoUrl = getTelegramFileUrl(file.file_path);
-          console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch profile photo:", error.message);
-      }
-
-      const params = new URLSearchParams({
-        lat: latitude,
-        lon: longitude,
-        appid: process.env.WEATHER_API_KEY,
-        units: "imperial",
-      });
-      const weatherUrl = getOWWeatherUrl(params);
-      // Get weather data from OpenWeather API
-      console.log(`🌍 Fetching weather data from: ${weatherUrl}`);
-
-      const weatherResponse = await axios.get(weatherUrl);
-      const weatherData = weatherResponse.data;
-      console.log(`✅ Weather Data Fetched:`, weatherData);
-
-      const city = weatherData.name;
-      const temperature = weatherData.main.temp;
-      const weather = weatherData.weather[0].description;
-
-      // Get local time
-      const localTime = moment()
-        .utcOffset(weatherData.timezone / 60)
-        .format("YYYY-MM-DD HH:mm:ss");
-      const unixTime = moment().unix(); // Unix timestamp for comparison
-
-      // Read existing data and update JSON file
-      const storedData = readData();
-
-      // Calculate points based on distance from target location
-      const distance = getDistance(latitude, longitude, TARGET_LOCATION.latitude, TARGET_LOCATION.longitude);
-      let points = 0;
-
-      // Check if the user already exists in data.json
-      let userEntry = storedData.find(entry => entry.userId === user.id);
-      if (!userEntry) {
-        console.log("🆕 New user detected. Creating a new entry...");
-        userEntry = {
-          userId,
-          firstName: user.first_name,
-          lastName: user.last_name || "",
-          username: user.username || "",
-          language: user.language_code,
-          profilePhoto: profilePhotoUrl || "",
-          shareCount: 0,
-          pointsCount: 0,
-          locations: [],
-        };
-        storedData.push(userEntry);
-      } else {
-        console.log(`user: ${userEntry.userId}`);
-      }
       if (distance <= TARGET_LOCATION.radiusMeters) {
         // Prevent awarding points if the last location was already inside the radius
         const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
-        if (!lastLocation || getDistance(lastLocation.latitude, lastLocation.longitude, latitude, longitude) > 5) {
-          points += 1;
+
+        // grabbing user profile photo from Telegram API
+        let profilePhotoUrl = "";
+        try {
+          // Get user profile photos
+          const photos = await bot.telegram.getUserProfilePhotos(userId, 0, 1);
+
+          if (photos.total_count > 0) {
+            const fileId = photos.photos[0][0].file_id; // Get the smallest version
+            const file = await bot.telegram.getFile(fileId);
+            profilePhotoUrl = getTelegramFileUrl(file.file_path);
+            console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
+          }
+        } catch (error) {
+          console.error("❌ Failed to fetch profile photo:", error.message);
         }
+
+        const params = new URLSearchParams({
+          lat: latitude,
+          lon: longitude,
+          appid: process.env.WEATHER_API_KEY,
+          units: "imperial",
+        });
+        const weatherUrl = getOWWeatherUrl(params);
+        // Get weather data from OpenWeather API
+        console.log(`🌍 Fetching weather data from: ${weatherUrl}`);
+
+        const weatherResponse = await axios.get(weatherUrl);
+        const weatherData = weatherResponse.data;
+        console.log(`✅ Weather Data Fetched:`, weatherData);
+
+        const city = weatherData.name;
+        const temperature = weatherData.main.temp;
+        const weather = weatherData.weather[0].description;
+
+        // Get local time
+        const localTime = moment()
+          .utcOffset(weatherData.timezone / 60)
+          .format("YYYY-MM-DD HH:mm:ss");
+        const unixTime = moment().unix(); // Unix timestamp for comparison
+
+        // Read existing data and update JSON file
+        const storedData = readData();
+
+        // Calculate points based on distance from target location
+        const distance = getDistance(latitude, longitude, TARGET_LOCATION.latitude, TARGET_LOCATION.longitude);
+        let points = 0;
+
+        // Check if the user already exists in data.json
+        let userEntry = storedData.find(entry => entry.userId === user.id);
+        if (!userEntry) {
+          console.log("🆕 New user detected. Creating a new entry...");
+          userEntry = {
+            userId,
+            firstName: user.first_name,
+            lastName: user.last_name || "",
+            username: user.username || "",
+            language: user.language_code,
+            profilePhoto: profilePhotoUrl || "",
+            shareCount: 0,
+            pointsCount: 0,
+            locations: [],
+          };
+          storedData.push(userEntry);
+        } else {
+          console.log(`user: ${userEntry.userId}`);
+        }
+        if (distance <= TARGET_LOCATION.radiusMeters) {
+          // Prevent awarding points if the last location was already inside the radius
+          const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
+          if (!lastLocation || getDistance(lastLocation.latitude, lastLocation.longitude, latitude, longitude) > 5) {
+            points += 1;
+          }
+        }
+        // Set/update dynamic fields (applies to both new & returning users)
+        userEntry.firstName = user.first_name;
+        userEntry.lastName = user.last_name || "";
+        userEntry.username = user.username || "";
+        userEntry.language = user.language_code;
+
+        // Update profile photo only if it's different from the saved one
+        if (profilePhotoUrl && profilePhotoUrl !== userEntry.profilePhoto) {
+          console.log("🔄 Updating profile photo URL...");
+          userEntry.profilePhoto = profilePhotoUrl;
+        }
+
+        userEntry.shareCount = (userEntry.shareCount || 0) + 1;
+        userEntry.pointsCount = (userEntry.pointsCount || 0) + points;
+
+        // Log the points data
+        console.log(`📍 Distance from target location: ${distance} meters`);
+        console.log("📊 Points awarded to user for this entry: ", points);
+        const timestamp = Date.now(); // Current timestamp
+
+        // calling backend ICP canister
+        const response = await submitWeatherData(
+          userId,
+          "b8063e98ee44802de4e40f2bb30820ebb2a4d5730dbbc8b95dbd7620e6941723", // replace with user's wallet address when that gets implemented
+          latitude,
+          longitude,
+          city,
+          temperature,
+          weather
+        );
+        console.log("📡 Response from backend canister:", response);
+        ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
+
+        // Add the new location to the user's location array in data.json
+        const newLocation = {
+          latitude,
+          longitude,
+          city,
+          temperature,
+          weather,
+          time: localTime,
+          unixTime,
+          photoUrl: null,
+          pointsEarned: points,
+          submissionId: Number(response),
+        };
+        userEntry.locations.push(newLocation);
+
+        // Save the updated data
+        saveData(storedData);
+        console.log("💾 Data saved:", userEntry);
+
+        ctx.reply(
+          `✅ Data Saved!\n📍 Location: ${city}\n🌡 Temperature: ${temperature}°F\n🌤 Weather: ${weather}\n🕰 Time: ${localTime}\n\nPlease send a photo to add to your submission!`
+        );
+
+        console.log("✅ Response sent to user!");
       }
-      // Set/update dynamic fields (applies to both new & returning users)
-      userEntry.firstName = user.first_name;
-      userEntry.lastName = user.last_name || "";
-      userEntry.username = user.username || "";
-      userEntry.language = user.language_code;
-
-      // Update profile photo only if it's different from the saved one
-      if (profilePhotoUrl && profilePhotoUrl !== userEntry.profilePhoto) {
-        console.log("🔄 Updating profile photo URL...");
-        userEntry.profilePhoto = profilePhotoUrl;
-      }
-
-      userEntry.shareCount = (userEntry.shareCount || 0) + 1;
-      userEntry.pointsCount = (userEntry.pointsCount || 0) + points;
-
-      // Log the points data
-      console.log(`📍 Distance from target location: ${distance} meters`);
-      console.log("📊 Points awarded to user for this entry: ", points);
-      const timestamp = Date.now(); // Current timestamp
-
-      // calling backend ICP canister
-      const response = await submitWeatherData(
-        userId,
-        "b8063e98ee44802de4e40f2bb30820ebb2a4d5730dbbc8b95dbd7620e6941723", // replace with user's wallet address when that gets implemented
-        latitude,
-        longitude,
-        city,
-        temperature,
-        weather
-      );
-      console.log("📡 Response from backend canister:", response);
-      ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
-
-      // Add the new location to the user's location array in data.json
-      const newLocation = {
-        latitude,
-        longitude,
-        city,
-        temperature,
-        weather,
-        time: localTime,
-        unixTime,
-        photoUrl: null,
-        pointsEarned: points,
-        submissionId: Number(response),
-      };
-      userEntry.locations.push(newLocation);
-
-      // Save the updated data
-      saveData(storedData);
-      console.log("💾 Data saved:", userEntry);
-
-      ctx.reply(
-        `✅ Data Saved!\n📍 Location: ${city}\n🌡 Temperature: ${temperature}°F\n🌤 Weather: ${weather}\n🕰 Time: ${localTime}\n\nPlease send a photo to add to your submission!`
-      );
-
-      console.log("✅ Response sent to user!");
     } catch (error) {
       console.error(error);
       console.error("❌ ERROR:", error);
@@ -394,29 +391,22 @@ bot.start(async ctx => {
       const fileId = largestPhoto.file_id;
 
       console.log(`📷 Received photo from user ${user.first_name}, File ID: ${fileId}`);
-
       // Read existing data
       const storedData = readData();
       let userEntry = storedData.find(entry => entry.userId === userId);
-
       if (!userEntry || userEntry.locations.length === 0) {
         return ctx.reply("⚠️ Please **share your location first** before sending a photo!");
       }
-
       let lastLocation = userEntry.locations[userEntry.locations.length - 1];
       const currentUnixTime = moment().unix(); // Get current Unix timestamp
-
       const timeDifference = currentUnixTime - lastLocation.unixTime; // Difference in seconds
       console.log(`🔍 Time since location: ${timeDifference} seconds`);
-
       if (timeDifference > 60) {
         return ctx.reply("⏳ Too much time has passed! Please share your location again before sending a photo.");
       }
 
       // Attach photo to the most recent location entry
       userEntry.locations[userEntry.locations.length - 1].photoUrl = fileId;
-
-      // Save updated data
       saveData(storedData);
 
       ctx.reply("📷 Photo saved with your last shared location!");
