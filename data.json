@@ -5,8 +5,8 @@
     "lastName": "Bryzek",
     "username": "HaasBlockchain",
     "language": "en",
-    "profilePhoto": "",
-    "shareCount": 1,
+    "profilePhoto": "https://api.telegram.org/file/bot7830025691:AAFByMGesCZjxJUs14lcRzfV_pFhFC_jjXA/photos/file_22.jpg",
+    "shareCount": 2,
     "pointsCount": 0,
     "locations": [
       {
@@ -19,6 +19,18 @@
         "unixTime": 1740504008,
         "photoUrl": "AgACAgEAAxkBAAPBZ738CWwBFFtrzqKm1auQvc_DFJ0AAsStMRvqtfBFjZErCBhwaH8BAAMCAAN5AAM2BA",
         "pointsEarned": 0
+      },
+      {
+        "latitude": 37.87078,
+        "longitude": -122.25298,
+        "city": "Berkeley",
+        "temperature": 60.46,
+        "weather": "broken clouds",
+        "time": "2025-03-20 15:30:46",
+        "unixTime": 1742509846,
+        "photoUrl": null,
+        "pointsEarned": 0,
+        "submissionId": 1
       }
     ]
   },
