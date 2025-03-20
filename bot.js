@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { Telegraf, Markup } = require("telegraf");
+const fetch = require('node-fetch');
 const axios = require("axios");
 const moment = require("moment");
 const fs = require("fs");
@@ -97,79 +98,95 @@ let idlFactory;
   //   const url = getCanisterCallUrl(canisterId)
   //  `http://127.0.0.1:4943/api/v2/canister/${canisterId}/call`;
 
-  //   // Data payload with function parameters
-  //   const payload = {
-  //     canister_id: canisterId,
-  //     method_name: "submit_weather_data",
-  //     args: [telegram_id, recipient_address, latitude, longitude, city, temperature, weather],
-  //   };
+// start by saving user's information into json
+// Welcome message upon /start command prompts users to share location
+bot.start(async ctx => {
+  try {
+    const user = ctx.message.from;
+    const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
+    // calling backend ICP canister
 
-  //   // debugging
-  //   console.log("payload before CBOR encoding:", JSON.stringify(payload, null, 2));
+    const response = await createTgUser(
+      user.id,
+      user.first_name,
+      user.last_name,
+      user.username,
+      user.language_code,
+      user.is_bot
+    );
+    console.log("📡 Response from backend canister:", response);
+    ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
 
-  //   // Send request to IC canister
-  //   try {
-  //     // Convert payload to CBOR
-  //     const cborPayload = cbor.encode(payload);
-  //     const response = await fetch(url, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/cbor" },
-  //       body: cborPayload,
-  //     });
+  storedData = readData();
 
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-  //     }
+  // Check if the user already exists in data.json
+  let userEntry = storedData.find(entry => entry.userId === user.id);
+  if (!userEntry) {
+    console.log("🆕 New user detected. Creating a new entry...");
 
-  //     // Read and decode CBOR response
-  //     const responseData = await response.arrayBuffer();
-  //     const decodedResponse = cbor.decode(Buffer.from(responseData));
-  //     console.log("Response from Canister:", decodedResponse);
-  //     return decodedResponse;
-  //   } catch (error) {
-  //     console.error("Error submitting weather data:", error);
-  //     return { error: error.message };
-  //   }
-  // }
+        // grabbing user profile photo from Telegram API
+        let profilePhotoUrl = '';
+        try {
+        // Get user profile photos
+        const photos = await bot.telegram.getUserProfilePhotos(user.id, 0, 1);
+    
+        if (photos.total_count > 0) {
+          const fileId = photos.photos[0][0].file_id; // Get the smallest version
+          const file = await bot.telegram.getFile(fileId);
+          profilePhotoUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${file.file_path}`;
+          console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch profile photo:", error.message);
+      }
 
-  const userStates = {}; // Store user actions before location sharing
+    const userPayload = {
+      userId: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name || '',
+      username: user.username || '',
+      language: user.language_code || '',
+      profilePhoto: profilePhotoUrl,
+    };
 
-  // Welcome message upon /start command prompts users to share location
-  bot.start(async ctx => {
     try {
-      const user = ctx.message.from;
-      const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
-      // calling backend ICP canister
-
-      const response = await createTgUser(
-        user.id,
-        user.first_name,
-        user.last_name,
-        user.username,
-        user.language_code,
-        user.is_bot
-      );
-      console.log("📡 Response from backend canister:", response);
-      ctx.reply(`✅ Weather data submitted successfully for ${city}.`);
-
-      ctx.reply(
-        msg,
-        Markup.keyboard([
-          [
-            Markup.button.locationRequest("📍 Share Location"),
-            Markup.button.webApp("🔌 Connect Plug Wallet", process.env.NGROK_URL + "/plug"),
-          ], // Share location button
-          [
-            Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"),
-            Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao"),
-          ], // Mini App button
-        ]).resize()
-      );
+      const response = await fetch(`${process.env.NGROK_URL}/save-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userPayload)
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        console.log('✅ User saved:', result.message);
+      } else if (response.status === 409) {
+        console.log('⚠️ User already exists:', result.message);
+      } else {
+        console.error('❌ Failed to save user:', result.error || result);
+      }
     } catch (error) {
-      console.error("❌ Error in bot.start:", error);
-      ctx.reply("⚠️ An error occurred while processing your request.");
+      console.error('🚨 Error calling /save-user:', error.message);
     }
-  });
+  } else {
+    console.log(`user: ${userEntry.userId}`);
+  }
+
+  ctx.reply(
+    "Welcome! Choose an option:",
+    Markup.keyboard([
+      [
+        Markup.button.locationRequest("📍 Share Location"),
+        Markup.button.webApp("🔌 Connect TON Wallet", process.env.NGROK_URL + "/plug"),
+      ], // Share location button
+      [
+        Markup.button.webApp("🏆 View Leaderboard", process.env.NGROK_URL + "/leaderboard"),
+        Markup.button.webApp("🌎 CarbonSustain DAO", process.env.NGROK_URL + "/dao"),
+      ], // Mini App button
+    ]).resize()
+  );
+});
+
 
   // Handle User Location
   bot.on("location", async ctx => {
@@ -180,6 +197,9 @@ let idlFactory;
       const user = ctx.message.from;
       const { latitude, longitude } = ctx.message.location;
       console.log(`📍 Received location from ${user.first_name} (ID: ${userId}): Lat ${latitude}, Lon ${longitude}`);
+    if (distance <= TARGET_LOCATION.radiusMeters) {
+      // Prevent awarding points if the last location was already inside the radius
+      const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
 
       // grabbing user profile photo from Telegram API
       let profilePhotoUrl = "";

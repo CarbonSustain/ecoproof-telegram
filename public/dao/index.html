@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CarbonSustain DAO</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@dfinity/agent@0.14.0/dist/agent.min.js"></script>
 </head>
 <body>
     <h2>🌍 CarbonSustain DAO</h2>
@@ -27,54 +28,100 @@
             </tbody>
         </table>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    <script type="module">
+        import { HttpAgent, Actor } from "https://unpkg.com/@dfinity/agent@0.14.0/dist/agent.min.js";
+        
+        let userId;
+        document.addEventListener("DOMContentLoaded", () => {
+            const telegram = window.Telegram.WebApp;
+            telegram.ready();
+            
+            const user = telegram.initDataUnsafe?.user;
+            
+            if (user) {
+                const userId = user.id;
+                console.log("Telegram User ID:", userId);
+                // Now you can use userId to call vote_on_data
+            } else {
+                console.warn("No user info found from Telegram.");
+            }
+        });
+
+        async function init() {
+            const CANISTER_ID = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
+    
+            const idlFactory = ({ IDL }) => {
+                return IDL.Service({
+                    vote_on_data: IDL.Func([IDL.Int, IDL.Nat, IDL.Bool], [], ['query']), // Change to [] if it's an update
+                });
+            };
+    
+            const agent = new HttpAgent({ host: "https://icp-api.io" });
+            const dao_backend = Actor.createActor(idlFactory, {
+                agent,
+                canisterId: CANISTER_ID,
+            });
+            
             const tableBody = document.getElementById("table-body");
             
             fetch("/submissions")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Fetched Data:", data); // Debugging Step
-
-                // ✅ Ensure `active` array exists and is valid
-                if (!data.active || !Array.isArray(data.active)) {
-                    console.error("No active submissions found or incorrect data format.");
-                    return;
-                }
-                // ✅ Loop through active submissions and populate table
-                data.active.forEach(submission => {
-                    let row = document.createElement("tr");
-                    const DEFAULT_IMAGE = "/dao/no_image.jpg";
-                    let imageUrl = submission.photoUrl ? submission.photoUrl : "https://via.placeholder.com/150";
-                    row.innerHTML = `
-                    <td>
-                            <div class="submission-container">
-                                <img src="${submission.photoUrl || DEFAULT_IMAGE}" class="submission-image" alt="Location Photo">
-                                <div class="submission-info">
-                                    <strong>${submission.city || "Unknown City"}</strong>
-                                    <small>📍 Lat: ${submission.latitude}, Long: ${submission.longitude}</small>
-                                    <small>🌦 Weather: ${submission.weather || "N/A"}</small>
-                                    <small>🌡 Temp: ${submission.temperature || "N/A"}°F</small>
-                                    <small>🕒 ${submission.time}</small>
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.active || !Array.isArray(data.active)) {
+                        console.error("No active submissions found");
+                        return;
+                    }
+        
+                    data.active.forEach(submission => {
+                        const row = document.createElement("tr");
+                        const DEFAULT_IMAGE = "/dao/no_image.jpg";
+                        
+                        row.innerHTML = `
+                            <td>
+                                <div class="submission-container">
+                                    <img src="${submission.photoUrl || DEFAULT_IMAGE}" class="submission-image" alt="Location Photo">
+                                    <div class="submission-info">
+                                        <strong>${submission.city || "Unknown City"}</strong>
+                                        <small>📍 Lat: ${submission.latitude}, Long: ${submission.longitude}</small>
+                                        <small>🌦 Weather: ${submission.weather || "N/A"}</small>
+                                        <small>🌡 Temp: ${submission.temperature || "N/A"}°F</small>
+                                        <small>🕒 ${submission.time}</small>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                    <td>
-                        <button class="vote-button yes-button">Yes 👍 (0)</button>
-                        <button class="vote-button no-button">No 👎 (0)</button>
-                        </td>
+                            </td>
+                            <td>
+                                <button class="vote-button yes-button" data-id="${submission.data_id}">Yes 👍</button>
+                                <button class="vote-button no-button" data-id="${submission.data_id}">No 👎</button>
+                            </td>
                         `;
-                        tableBody.appendChild(row)
+                        tableBody.appendChild(row);
+                    });
+        
+                    // Add event listeners to vote buttons
+                    tableBody.querySelectorAll(".yes-button").forEach(button => {
+                        button.addEventListener("click", async () => {
+                            const dataId = parseInt(button.getAttribute("data-id"));
+                            await dao_backend.vote_on_data(userId, dataId, true);
+                            alert("You voted YES on submission " + dataId);
+                        });
+                    });
+        
+                    tableBody.querySelectorAll(".no-button").forEach(button => {
+                        button.addEventListener("click", async () => {
+                            const dataId = parseInt(button.getAttribute("data-id"));
+                            await dao_backend.vote_on_data(userId, dataId, false);
+                            alert("You voted NO on submission " + dataId);
+                        });
                     });
                 })
-                .catch(error => console.error("Error loading submissions:", error));
-            });
-            </script>
+                .catch(err => {
+                    console.error("Error fetching submissions:", err);
+                });
+        }
+        
+        init(); // ← Call it
+    </script>
+    
 
     <div id="rewarded" class="content">
         <h3>Rewarded Submissions</h3>
@@ -95,48 +142,48 @@
             const tableBody = document.getElementById("rewarded-body");
             
             fetch("/submissions")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Fetched Data:", data); // Debugging Step
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched Data:", data); // Debugging Step
 
-                // ✅ Ensure `rewarded` array exists and is valid
-                if (!data.rewarded || !Array.isArray(data.active)) {
-                    console.error("No rewarded submissions found or incorrect data format.");
-                    return;
-                }
-                // ✅ Loop through active submissions and populate table
-                data.rewarded.forEach(submission => {
-                    let row = document.createElement("tr");
-                    const DEFAULT_IMAGE = "/dao/no_image.jpg";
-                    let imageUrl = submission.photoUrl ? submission.photoUrl : "https://via.placeholder.com/150";
-                    row.innerHTML = `
-                    <td>
-                            <div class="submission-container">
-                                <img src="${submission.photoUrl || DEFAULT_IMAGE}" class="submission-image" alt="Location Photo">
-                                <div class="submission-info">
-                                    <strong>${submission.city || "Unknown City"}</strong>
-                                    <small>📍 Lat: ${submission.latitude}, Long: ${submission.longitude}</small>
-                                    <small>🌦 Weather: ${submission.weather || "N/A"}</small>
-                                    <small>🌡 Temp: ${submission.temperature || "N/A"}°F</small>
-                                    <small>🕒 ${submission.time}</small>
+                    // ✅ Ensure `rewarded` array exists and is valid
+                    if (!data.rewarded || !Array.isArray(data.active)) {
+                        console.error("No rewarded submissions found or incorrect data format.");
+                        return;
+                    }
+                    // ✅ Loop through active submissions and populate table
+                    data.rewarded.forEach(submission => {
+                        let row = document.createElement("tr");
+                        const DEFAULT_IMAGE = "/dao/no_image.jpg";
+                        let imageUrl = submission.photoUrl ? submission.photoUrl : "https://via.placeholder.com/150";
+                        row.innerHTML = `
+                            <td>
+                                <div class="submission-container">
+                                    <img src="${submission.photoUrl || DEFAULT_IMAGE}" class="submission-image" alt="Location Photo">
+                                    <div class="submission-info">
+                                        <strong>${submission.city || "Unknown City"}</strong>
+                                        <small>📍 Lat: ${submission.latitude}, Long: ${submission.longitude}</small>
+                                        <small>🌦 Weather: ${submission.weather || "N/A"}</small>
+                                        <small>🌡 Temp: ${submission.temperature || "N/A"}°F</small>
+                                        <small>🕒 ${submission.time}</small>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                    <td>
-                        <!-- Fill with right side of table -->
-                        </td>
+                            </td>
+                            <td>
+                                <!-- Fill with right side of table -->
+                            </td>
                         `;
-                        tableBody.appendChild(row)
+                        tableBody.appendChild(row);
                     });
                 })
                 .catch(error => console.error("Error loading submissions:", error));
-            });
-            </script>
+        });
+    </script>
 
     <script>
         function showTab(tab) {
