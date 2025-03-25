@@ -99,9 +99,6 @@ let idlFactory;
     try {
       const user = ctx.message.from;
       const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
-      // calling backend ICP canister
-      
-
 
       const storedData = readData();
       // Check if the user already exists in data.json
@@ -151,6 +148,7 @@ let idlFactory;
       } else {
         console.log(`user: ${userEntry.userId}`);
       }
+      // create user in backend ICP canister
       const response = await createTgUser(
         user.id,
         user.first_name,
