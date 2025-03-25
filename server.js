@@ -8,10 +8,10 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 const app = express();
-app.use(express.static("public"));
 const PORT = process.env.PORT || 3001; // Fetch PORT from .env, fallback to 3000 if undefined
 const DATA_FILE = "data.json";
 const BOT_TOKEN = process.env.BOT_TOKEN;
+app.use(express.json());
 
 // Function to read and sort leaderboard
 const getLeaderboard = () => {
@@ -37,7 +37,6 @@ const saveData = data => {
 
 // to avoid the ngrok browser warning
 app.use((req, res, next) => {
-  express.json();
   res.setHeader("ngrok-skip-browser-warning", "true");
   next();
 });
@@ -87,7 +86,7 @@ app.post("/save-wallet", async (req, res) => {
   if (!userId || !walletAddress) {
     return res.status(400).json({ error: "Missing userId or walletAddress" });
   }
-  let users = loadUsers();
+  let users = readData();
   let user = users.find(u => u.userId === userId);
 
   // If user doesn't exist, create them by calling /save-user
@@ -111,14 +110,14 @@ app.post("/save-wallet", async (req, res) => {
       if (!response.ok) {
         throw new Error("Failed to create user");
       }
-      users = loadUsers(); // Reload users after creating new user
+      users = readData(); // Reload users after creating new user
       user = users.find(u => u.userId === userId);
     } catch (error) {
       return res.status(500).json({ error: "Failed to create user" });
     }
   }
   user.walletAddress = walletAddress;
-  saveUsers(users);
+  saveData(users);
 
   res.json({ message: "Wallet address saved successfully" });
 });

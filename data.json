@@ -1,2 +1,27 @@
 [
+  {
+    "userId": 6682953121,
+    "firstName": "Caedin",
+    "lastName": "Manners",
+    "username": "caedino30",
+    "language": "en",
+    "profilePhoto": "https://api.telegram.org/file/bot7830025691:AAFByMGesCZjxJUs14lcRzfV_pFhFC_jjXA/photos/file_29.jpg",
+    "walletAddress": "",
+    "shareCount": 1,
+    "pointsCount": 0,
+    "locations": [
+      {
+        "latitude": 21.27516,
+        "longitude": -157.821039,
+        "city": "Maunalani Heights",
+        "temperature": 80.37,
+        "weather": "clear sky",
+        "time": "2025-03-24 14:54:50",
+        "unixTime": 1742864090,
+        "photoUrl": "AgACAgEAAxkBAAID2Wfh_ujrTT2uHbFce5-7IG1IbE0iAAIorzEbfxURR-Xd1W82lTjkAQADAgADeQADNgQ",
+        "pointsEarned": 0,
+        "submissionId": 1
+      }
+    ]
+  }
 ]

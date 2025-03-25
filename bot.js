@@ -100,20 +100,10 @@ let idlFactory;
       const user = ctx.message.from;
       const msg = "Welcome! " + user.username + " Please choose an option:" + console.log("User Info:", user);
       // calling backend ICP canister
+      
 
-      const response = await createTgUser(
-        user.id,
-        user.first_name,
-        user.last_name,
-        user.username,
-        user.language_code,
-        user.is_bot
-      );
-      console.log("📡 Response from backend canister:", response);
-      ctx.reply(`✅ Weather data submitted successfully for ${user.id}.`);
 
-      storedData = readData();
-
+      const storedData = readData();
       // Check if the user already exists in data.json
       let userEntry = storedData.find(entry => entry.userId === user.id);
       if (!userEntry) {
@@ -161,6 +151,17 @@ let idlFactory;
       } else {
         console.log(`user: ${userEntry.userId}`);
       }
+      const response = await createTgUser(
+        user.id,
+        user.first_name,
+        user.last_name,
+        user.username,
+        user.language_code,
+        user.is_bot
+      );
+
+      console.log("📡 Response from backend canister:", response);
+
       ctx.reply(
         "Welcome! Choose an option:",
         Markup.keyboard([
@@ -183,30 +184,26 @@ let idlFactory;
   bot.on("location", async ctx => {
     console.log("📍 Location received from Telegram!");
     try {
-      const chatId = ctx.chat.id;
       const userId = ctx.message.from.id;
       const user = ctx.message.from;
       const { latitude, longitude } = ctx.message.location;
       console.log(`📍 Received location from ${user.first_name} (ID: ${userId}): Lat ${latitude}, Lon ${longitude}`);
-      if (distance <= TARGET_LOCATION.radiusMeters) {
-        // Prevent awarding points if the last location was already inside the radius
-        const lastLocation = userEntry?.locations[userEntry.locations.length - 1];
+      
+      // grabbing user profile photo from Telegram API
+      let profilePhotoUrl = "";
+      try {
+        // Get user profile photos
+        const photos = await bot.telegram.getUserProfilePhotos(userId, 0, 1);
 
-        // grabbing user profile photo from Telegram API
-        let profilePhotoUrl = "";
-        try {
-          // Get user profile photos
-          const photos = await bot.telegram.getUserProfilePhotos(userId, 0, 1);
-
-          if (photos.total_count > 0) {
-            const fileId = photos.photos[0][0].file_id; // Get the smallest version
-            const file = await bot.telegram.getFile(fileId);
-            profilePhotoUrl = getTelegramFileUrl(file.file_path);
-            console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
-          }
-        } catch (error) {
-          console.error("❌ Failed to fetch profile photo:", error.message);
+        if (photos.total_count > 0) {
+          const fileId = photos.photos[0][0].file_id; // Get the smallest version
+          const file = await bot.telegram.getFile(fileId);
+          profilePhotoUrl = getTelegramFileUrl(file.file_path);
+          console.log("🔗 Constructed profile photo URL:", profilePhotoUrl);
         }
+      } catch (error) {
+        console.error("❌ Failed to fetch profile photo:", error.message);
+      }
 
         const params = new URLSearchParams({
           lat: latitude,
@@ -320,8 +317,7 @@ let idlFactory;
         );
 
         console.log("✅ Response sent to user!");
-      }
-    } catch (error) {
+      } catch (error) {
       console.error(error);
       console.error("❌ ERROR:", error);
       ctx.reply("⚠️ Failed to fetch weather data. Please try again later.");
